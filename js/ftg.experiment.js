@@ -4,63 +4,23 @@
  * some data are collected (facial expressions, etc).
  */
 
- var FTG = FTG || {};
+var FTG = FTG || {};
 
- FTG.Experiment = function() {
-     this.MARIO_INSTRUCTIONS =
-        '<p class="head">How to play:</p>' +
-        '<li><img src="../img/keys/a.png" title="A" class="key" /> <p>(Press and hold) <strong>RUN</strong><br />(Press and hold) <strong>CARRY things</strong><br /><strong>FIREBALL</strong> (if Mario has a flower)</p></li>' +
-        '<li><img src="../img/keys/s.png" title="S" class="key" /> <p><strong>JUMP</strong><br /><small>The SPACE key also works for jumping</small></p></li>' +
-        '<li><img src="../img/keys/left.png" title="Left arrow" class="key" /> <p><strong>MOVE left</strong></p></li>' +
-        '<li><img src="../img/keys/right.png" title="Right arrow" class="key" /> <p><strong>MOVE right</strong></p></li>';
+FTG.Experiment = function() {
 
-     this.mUid;
-     this.mCurrentGame;
-     this.mRestTime = 2.3; // in minutes
-     this.mDebug;
-     this.mFinished;
-     this.mData;
-     this.mBipSound;
-     this.mTanSound;
-     this.mCalmSound;
-
-     this.mGames = [
-         // Calibration games
-         {id: 1, name: 'card-flipper', url: '../card-flipper/', width: 1200, height: 900, paddingLeft: 200, cots: false, questions: FTG.Questions.Game, hasRest: true},
-         {id: 2, name: 'tetris', url: '../tetris/', width: 600, height: 900, paddingLeft: 500, cots: false, questions: FTG.Questions.Game, hasRest: true},
-         {id: 3, name: 'platformer', url: '../platformer/', width: 1200, height: 900, paddingLeft: 200, cots: false, questions: FTG.Questions.Game, hasRest: true},
-
-         // Mario A
-         {id: 4, name: 'cots-mario', url: '../cots-mario/', width: 1000, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'A1'}, instructions: this.MARIO_INSTRUCTIONS},
-         {id: 5, name: 'cots-mario', url: '../cots-mario/', width: 1000, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'A2'}, instructions: this.MARIO_INSTRUCTIONS},
-         {id: 6, name: 'cots-mario', url: '../cots-mario/', width: 1000, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'A3'}, instructions: this.MARIO_INSTRUCTIONS},
-
-         // Mario B
-         {id: 7, name: 'cots-mario', url: '../cots-mario/', width: 1000, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'B1'}, instructions: this.MARIO_INSTRUCTIONS},
-         {id: 8, name: 'cots-mario', url: '../cots-mario/', width: 1000, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'B2'}, instructions: this.MARIO_INSTRUCTIONS},
-         {id: 9, name: 'cots-mario', url: '../cots-mario/', width: 1000, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'B3'}, instructions: this.MARIO_INSTRUCTIONS},
-
-         // Mario C
-         {id: 10, name: 'cots-mario', url: '../cots-mario/', width: 1200, height: 800, paddingLeft: 480, cots: true, questions: FTG.Questions.COTS, questionsIntro: FTG.Questions.COTS_INTRO, hasRest: false, params: {profile: 'C1'}, instructions: this.MARIO_INSTRUCTIONS}
-     ];
-
-     this.mCOTSSorting = [
-         4, 5, 6, 7, 8, 9, 10
-     ];
-
-     this.mGamesSorting = [
-        /* 0 */ [1, 2, 3].concat(this.mCOTSSorting),
-        /* 1 */ [1, 3, 2].concat(this.mCOTSSorting),
-        /* 2 */ [2, 1, 3].concat(this.mCOTSSorting),
-        /* 3 */ [2, 3, 1].concat(this.mCOTSSorting),
-        /* 4 */ [3, 2, 1].concat(this.mCOTSSorting),
-        /* 5 */ [3, 1, 2].concat(this.mCOTSSorting)
-     ];
-     this.mSorting;
+    this.mUid;
+    this.mCurrentPhrase;
+    this.mRestTime = 2.3; // in minutes
+    this.mDebug;
+    this.mFinished;
+    this.mData;
+    this.mBipSound;
+    this.mTanSound;
+    this.mCalmSound;
 
     // Initialize the whole thing up
     this.init();
- };
+};
 
 // Singleton that will be used by all games
 FTG.Experiment.instance = null;
@@ -70,28 +30,20 @@ FTG.Experiment.instance = null;
 FTG.Experiment.prototype.init = function() {
     this.mUid = FTG.Utils.getURLParamByName('user');
 
-    this.mCurrentGame = -1; // TODO: get from URL.
+    this.mCurrentPhrase = -1; // TODO: get from URL.
     this.mRestTime = FTG.Utils.getURLParamByName('rest') || this.mRestTime;
     this.mDebug = FTG.Utils.getURLParamByName('debug') == 'true' || FTG.Utils.getURLParamByName('debug') == '1';
     this.mBipSound = document.getElementById('bip');
     this.mTanSound = document.getElementById('tan');
     this.mCalmSound = document.getElementById('calm');
-    this.mSorting = this.mUid ? (this.mUid % this.mGamesSorting.length) : 0;
     this.mFinished = false;
 
     this.mData = new FTG.Collector(this.mDebug);
     this.mRestTime *= 60 * 1000;
 
-    var aInformedSorting = FTG.Utils.getURLParamByName('sorting');
+    console.log('[Experiment] Init with user uid:' + this.mUid + ', rest: ' + this.mRestTime + 'ms');
 
-    if(aInformedSorting) {
-        this.mSorting = aInformedSorting;
-        console.warn('[Experiment] Default sorting was overridden by value informed in the URL (sorting=' + aInformedSorting + ')');
-    }
-
-    console.log('[Experiment] Init with user uid:' + this.mUid + ', rest: ' + this.mRestTime + 'ms, sorting: ' + this.mSorting + ' [' + this.mGamesSorting[this.mSorting].join(',') + ']');
-
-    if(this.mUid == null) {
+    if (this.mUid == null) {
         alert('User id not informed! Append ?user=DDD to the URL.');
     } else {
         this.greetings();
@@ -123,7 +75,7 @@ FTG.Experiment.prototype.preventAbruptSessionEnd = function() {
 };
 
 FTG.Experiment.prototype.enableCalmMusic = function(theStatus) {
-    if(theStatus) {
+    if (theStatus) {
         this.mCalmSound.loop = true;
         this.mCalmSound.currentTime = 0;
         this.mCalmSound.play();
@@ -147,10 +99,10 @@ FTG.Experiment.prototype.greetings = function() {
 
     $('#info').html(
         '<div class="greetings">' +
-            '<h1>Instructions</h1>' +
-            '<p>User: ' + this.mUid + '</p>' +
-            '<p>Welcome! Please wait the researcher let you know when to start.<br/>When you are told to start, click the "Start" button below.<br /><br />Thank you for being part of this research!</p>' +
-            '<button id="start">Start</button> <button id="heart">HR watch</button>' +
+        '<h1>Instruções</h1>' +
+        '<p>User: ' + this.mUid + '</p>' +
+        '<p>Bem-vindo! Por favor espere até que o pesquisador permita que você comece.<br/>Quando for lhe dito, clique em "Iniciar".<br /><br />Obrigado por fazer parte desta pesquisa!</p>' +
+        '<button id="start">Iniciar</button> <button id="heart">HR watch</button>' +
         '</div>'
     );
 
@@ -175,8 +127,8 @@ FTG.Experiment.prototype.greetings = function() {
 FTG.Experiment.prototype.generateGameURL = function(theGameInfo) {
     var aGameParams = '';
 
-    if(theGameInfo.params) {
-        for(var aParam in theGameInfo.params) {
+    if (theGameInfo.params) {
+        for (var aParam in theGameInfo.params) {
             aGameParams += '&' + aParam + '=' + encodeURIComponent(theGameInfo.params[aParam]);
         }
     }
@@ -186,44 +138,45 @@ FTG.Experiment.prototype.generateGameURL = function(theGameInfo) {
 
 FTG.Experiment.prototype.startNewGame = function() {
     var aGame;
+    $('#info').html('<iframe id="game" style="width: ' + 300 + 'px; height: ' + 300 + 'px; padding-left: ' + 20 + 'px;"></iframe>');
+    // document.getElementById('game').src = this.generateGameURL(aGame);
+    // if (this.anyMoreGamesToPlay()) {
+    //     this.mCurrentPhrase++;
+    //     aGame = this.getCurrentGame();
 
-    if(this.anyMoreGamesToPlay()) {
-        this.mCurrentGame++;
-        aGame = this.getCurrentGame();
+    //     console.log('[Experiment] New game about to start: ' + aGame.name + ' (id=' + aGame.id + ')');
+    //     this.playTanSound();
+    //     this.mData.logMilestone(this.mUid, aGame.id, 'experiment_game_start');
 
-        console.log('[Experiment] New game about to start: ' + aGame.name + ' (id=' + aGame.id + ')');
-        this.playTanSound();
-        this.mData.logMilestone(this.mUid, aGame.id, 'experiment_game_start');
+    //     // Add the game iframe and ajust its src property (prevent chache issues)
+    //     $('#info').html('<iframe id="game" style="width: ' + aGame.width + 'px; height: ' + aGame.height + 'px; padding-left: ' + aGame.paddingLeft + 'px;"></iframe>');
+    //     document.getElementById('game').src = this.generateGameURL(aGame);
 
-        // Add the game iframe and ajust its src property (prevent chache issues)
-        $('#info').html('<iframe id="game" style="width: ' + aGame.width + 'px; height: ' + aGame.height + 'px; padding-left: ' + aGame.paddingLeft + 'px;"></iframe>');
-        document.getElementById('game').src = this.generateGameURL(aGame);
+    //     if (aGame.instructions) {
+    //         $('#instructions').html(aGame.instructions).show();
+    //     } else {
+    //         $('#instructions').hide();
+    //     }
 
-        if(aGame.instructions) {
-            $('#instructions').html(aGame.instructions).show();
-        } else {
-            $('#instructions').hide();
-        }
+    //     if (this.mDebug) {
+    //         var aSelf = this;
 
-        if(this.mDebug) {
-            var aSelf = this;
-
-            $('#info').append('<button id="conclude">Conclude</button>');
-            $('#conclude').click(function() {
-                aSelf.concludeCurrentGame();
-            });
-        }
-    } else {
-        console.log('[Experiment] No more games to play, finishing now');
-        this.finish();
-    }
+    //         $('#info').append('<button id="conclude">Conclude</button>');
+    //         $('#conclude').click(function() {
+    //             aSelf.concludeCurrentGame();
+    //         });
+    //     }
+    // } else {
+    //     console.log('[Experiment] No more games to play, finishing now');
+    //     this.finish();
+    // }
 };
 
 FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
     var aGame = this.getCurrentGame();
 
-    if(this.anyMoreGamesToPlay()) {
-        if(aGame.hasRest) {
+    if (this.anyMoreGamesToPlay()) {
+        if (aGame.hasRest) {
             this.rest();
         } else {
             console.log('[Experiment] Concluded game has no rest. Moving on to next game.');
@@ -246,12 +199,12 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
             method: 'answer',
             user: this.mUid,
             game: theGameId,
-            data: JSON.stringify({t: Date.now(), d: theData})
+            data: JSON.stringify({ t: Date.now(), d: theData })
         },
         dataType: 'json'
 
     }).done(function(theData) {
-        if(theData.success) {
+        if (theData.success) {
             console.log('[Experiment] Questionnaire data has been saved!');
             aSelf.proceedAfterQuestionnaireAnswered();
 
@@ -267,7 +220,7 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
 FTG.Experiment.prototype.getGameQuestionsIntro = function(theGameInfo) {
     var aIntro = 'Regarding the game you just played, please answer the questions below.';
 
-    if(('questionsIntro' in theGameInfo) && theGameInfo.questionsIntro.length > 0) {
+    if (('questionsIntro' in theGameInfo) && theGameInfo.questionsIntro.length > 0) {
         aIntro = theGameInfo.questionsIntro;
     }
 
@@ -290,9 +243,9 @@ FTG.Experiment.prototype.concludeCurrentGame = function() {
     $('#instructions').hide();
     $('#info').html(
         '<div class="questionnaire">' +
-            '<h2>Questions</h2>' +
-            '<p>' + aIntro + '</p>' +
-            '<div id="questions" class="questions"></div>' +
+        '<h2>Questions</h2>' +
+        '<p>' + aIntro + '</p>' +
+        '<div id="questions" class="questions"></div>' +
         '</div>'
     );
 
@@ -312,7 +265,7 @@ FTG.Experiment.prototype.rest = function() {
         aId,
         aGame = this.getCurrentGame();
 
-    console.log('[Experiment] Resting for ' + (this.mRestTime/1000) + ' seconds...');
+    console.log('[Experiment] Resting for ' + (this.mRestTime / 1000) + ' seconds...');
     this.mData.logMilestone(this.mUid, aGame.id, 'experiment_rest_start');
 
     this.enableCalmMusic(true);
@@ -321,7 +274,7 @@ FTG.Experiment.prototype.rest = function() {
     aId = setInterval(function() {
         var aRemaining = aFuture - Date.now();
 
-        if(aRemaining <= 0) {
+        if (aRemaining <= 0) {
             clearInterval(aId);
             aSelf.enableCalmMusic(false);
             aSelf.startNewGame();
@@ -330,7 +283,7 @@ FTG.Experiment.prototype.rest = function() {
 };
 
 FTG.Experiment.prototype.finish = function() {
-    if(this.mFinished) {
+    if (this.mFinished) {
         this.sendSubjectHome();
         return;
     }
@@ -341,16 +294,15 @@ FTG.Experiment.prototype.finish = function() {
 
     $('#info').html(
         '<div class="questionnaire">' +
-            '<h2>Questions</h2>' +
-            '<p>Please tell us a bit about you.</p>' +
-            '<div id="questions" class="questions"></div>' +
+        '<h2>Questions</h2>' +
+        '<p>Please tell us a bit about you.</p>' +
+        '<div id="questions" class="questions"></div>' +
         '</div>'
     );
 
     aQuestions = new FTG.Questionnaire(
         'questions',
-        this.mUid,
-        -1, // no game
+        this.mUid, -1, // no game
         FTG.Questions.User,
         this.concludeCurrentQuestionnaire,
         this
@@ -370,8 +322,8 @@ FTG.Experiment.prototype.sendSubjectHome = function() {
 FTG.Experiment.prototype.getGameById = function(theId) {
     var aGame = null;
 
-    for(var i = 0, aSize = this.mGames.length; i < aSize; i++) {
-        if(this.mGames[i].id == theId) {
+    for (var i = 0, aSize = this.mGames.length; i < aSize; i++) {
+        if (this.mGames[i].id == theId) {
             aGame = this.mGames[i];
             break;
         }
@@ -382,14 +334,14 @@ FTG.Experiment.prototype.getGameById = function(theId) {
 
 FTG.Experiment.prototype.getCurrentGame = function() {
     var aSelectedSorting = this.mGamesSorting[this.mSorting];
-    var aCurrentGameId = aSelectedSorting[this.mCurrentGame];
+    var aCurrentGameId = aSelectedSorting[this.mCurrentPhrase];
     var aCurrentGame = this.getGameById(aCurrentGameId);
 
     return aCurrentGame;;
 };
 
 FTG.Experiment.prototype.anyMoreGamesToPlay = function() {
-    return (this.mCurrentGame + 1) < this.mGamesSorting[this.mSorting].length;
+    return (this.mCurrentPhrase + 1) < this.mGamesSorting[this.mSorting].length;
 };
 
 // Start the party!

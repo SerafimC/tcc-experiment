@@ -1,2 +1,3 @@
 # phd-experiment2
-Source code of the 2nd experiment conducted during my PhD
+Source code for TCC experiment.
+Adapted from https://github.com/Dovyski/phd-experiment2
