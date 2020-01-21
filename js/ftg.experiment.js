@@ -30,7 +30,7 @@ FTG.Experiment.instance = null;
 FTG.Experiment.prototype.init = function() {
     this.mUid = FTG.Utils.getURLParamByName('user');
 
-    this.mCurrentPhrase = -1; // TODO: get from URL.
+    this.mCurrentPhrase = 0; // TODO: get from URL.
     this.mRestTime = FTG.Utils.getURLParamByName('rest') || this.mRestTime;
     this.mDebug = FTG.Utils.getURLParamByName('debug') == 'true' || FTG.Utils.getURLParamByName('debug') == '1';
     this.mBipSound = document.getElementById('bip');
@@ -107,7 +107,7 @@ FTG.Experiment.prototype.greetings = function() {
     );
 
     $('#start').click(function() {
-        aSelf.startNewGame();
+        aSelf.start();
     });
 
     $('#heart').click(function() {
@@ -136,55 +136,49 @@ FTG.Experiment.prototype.generateGameURL = function(theGameInfo) {
     return theGameInfo.url + '?user=' + this.mUid + '&game=' + theGameInfo.id + '&rand=' + Math.random() + '&debug=' + this.mDebug + aGameParams;
 };
 
-FTG.Experiment.prototype.startNewGame = function() {
-    var aGame;
-    $('#info').html('<iframe id="game" style="width: ' + 300 + 'px; height: ' + 300 + 'px; padding-left: ' + 20 + 'px;"></iframe>');
-    // document.getElementById('game').src = this.generateGameURL(aGame);
-    // if (this.anyMoreGamesToPlay()) {
-    //     this.mCurrentPhrase++;
-    //     aGame = this.getCurrentGame();
+FTG.Experiment.prototype.startExperiment = function(phrases) {
+    var aSelf = this;
 
-    //     console.log('[Experiment] New game about to start: ' + aGame.name + ' (id=' + aGame.id + ')');
-    //     this.playTanSound();
-    //     this.mData.logMilestone(this.mUid, aGame.id, 'experiment_game_start');
+    if (aSelf.mCurrentPhrase < phrases.length) {
 
-    //     // Add the game iframe and ajust its src property (prevent chache issues)
-    //     $('#info').html('<iframe id="game" style="width: ' + aGame.width + 'px; height: ' + aGame.height + 'px; padding-left: ' + aGame.paddingLeft + 'px;"></iframe>');
-    //     document.getElementById('game').src = this.generateGameURL(aGame);
+        $('#info').html('<h4>' + phrases[aSelf.mCurrentPhrase] + '</h4>' +
+            '<button id="next">Proximo</button>'
+        ).show();
 
-    //     if (aGame.instructions) {
-    //         $('#instructions').html(aGame.instructions).show();
-    //     } else {
-    //         $('#instructions').hide();
-    //     }
+        $('#next').click(function() {
+            aSelf.mCurrentPhrase += 1
+            aSelf.startExperiment(phrases)
+        });
 
-    //     if (this.mDebug) {
-    //         var aSelf = this;
-
-    //         $('#info').append('<button id="conclude">Conclude</button>');
-    //         $('#conclude').click(function() {
-    //             aSelf.concludeCurrentGame();
-    //         });
-    //     }
-    // } else {
-    //     console.log('[Experiment] No more games to play, finishing now');
-    //     this.finish();
-    // }
-};
-
-FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
-    var aGame = this.getCurrentGame();
-
-    if (this.anyMoreGamesToPlay()) {
-        if (aGame.hasRest) {
-            this.rest();
-        } else {
-            console.log('[Experiment] Concluded game has no rest. Moving on to next game.');
-            this.startNewGame();
-        }
     } else {
-        this.finish();
+        this.finish()
     }
+}
+
+FTG.Experiment.prototype.start = function() {
+    var text
+
+    $('#info').html(
+        '<div class="questionnaire">' +
+        '<h2>Questions</h2>' +
+        '<p>Please tell us a bit about you.</p>' +
+        '<div id="questions" class="questions"></div>' +
+        '</div>'
+    );
+
+    aQuestions = new FTG.Questionnaire(
+        'questions',
+        this.mUid, -1, // no game
+        FTG.Questions.User,
+        this.concludeCurrentQuestionnaire,
+        this
+    );
+
+    /*
+        FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
+            text = res.split(/\r?\n/)
+        })
+        this.startExperiment(text)*/
 };
 
 FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theData) {
@@ -206,7 +200,6 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
     }).done(function(theData) {
         if (theData.success) {
             console.log('[Experiment] Questionnaire data has been saved!');
-            aSelf.proceedAfterQuestionnaireAnswered();
 
         } else {
             console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
@@ -225,61 +218,6 @@ FTG.Experiment.prototype.getGameQuestionsIntro = function(theGameInfo) {
     }
 
     return aIntro;
-};
-
-FTG.Experiment.prototype.concludeCurrentGame = function() {
-    var aGame,
-        aQuestions,
-        aIntro;
-
-    aGame = this.getCurrentGame();
-
-    console.log('[Experiment] Current game (' + aGame.name + ', id=' + aGame.id + ') was concluded.');
-    this.playTanSound();
-    this.mData.logMilestone(this.mUid, aGame.id, 'experiment_game_end');
-
-    aIntro = this.getGameQuestionsIntro(aGame);
-
-    $('#instructions').hide();
-    $('#info').html(
-        '<div class="questionnaire">' +
-        '<h2>Questions</h2>' +
-        '<p>' + aIntro + '</p>' +
-        '<div id="questions" class="questions"></div>' +
-        '</div>'
-    );
-
-    aQuestions = new FTG.Questionnaire(
-        'questions',
-        this.mUid,
-        aGame.id,
-        aGame.questions,
-        this.concludeCurrentQuestionnaire,
-        this
-    );
-};
-
-FTG.Experiment.prototype.rest = function() {
-    var aFuture = Date.now() + this.mRestTime,
-        aSelf = this,
-        aId,
-        aGame = this.getCurrentGame();
-
-    console.log('[Experiment] Resting for ' + (this.mRestTime / 1000) + ' seconds...');
-    this.mData.logMilestone(this.mUid, aGame.id, 'experiment_rest_start');
-
-    this.enableCalmMusic(true);
-    $('#info').html('<div class="rest-container"><div><h1>Please, relax.</h1><p>Next game will start in a moment...</p></div></div>');
-
-    aId = setInterval(function() {
-        var aRemaining = aFuture - Date.now();
-
-        if (aRemaining <= 0) {
-            clearInterval(aId);
-            aSelf.enableCalmMusic(false);
-            aSelf.startNewGame();
-        }
-    }, 1000);
 };
 
 FTG.Experiment.prototype.finish = function() {
@@ -330,18 +268,6 @@ FTG.Experiment.prototype.getGameById = function(theId) {
     }
 
     return aGame;
-};
-
-FTG.Experiment.prototype.getCurrentGame = function() {
-    var aSelectedSorting = this.mGamesSorting[this.mSorting];
-    var aCurrentGameId = aSelectedSorting[this.mCurrentPhrase];
-    var aCurrentGame = this.getGameById(aCurrentGameId);
-
-    return aCurrentGame;;
-};
-
-FTG.Experiment.prototype.anyMoreGamesToPlay = function() {
-    return (this.mCurrentPhrase + 1) < this.mGamesSorting[this.mSorting].length;
 };
 
 // Start the party!
