@@ -20,8 +20,8 @@ try {
 	switch($aMethod) {
 		case 'tracking':
 		case 'answer':
-			if($aUser == 0 || $aGame == 0) {
-				throw new Exception('Empty UID or game id.');
+			if($aUser == 0) {
+				throw new Exception('Empty USER id.');
 			}
 
 			$aTable = $aMethod == 'tracking' ? 'logs' : 'questionnaires';
@@ -31,10 +31,9 @@ try {
 				throw new Exception('No data.');
 			}
 
-			$aStmt = $aDb->prepare("INSERT INTO ".$aTable." (fk_game, timestamp, uuid, data) VALUES (:game, :timestamp, :uuid, :data)");
+			$aStmt = $aDb->prepare("INSERT INTO ".$aTable." (user_id, timestamp, data) VALUES (:uuid, :timestamp, :data)");
 
 			$aNow = time();
-			$aStmt->bindParam(':game', $aGame);
 			$aStmt->bindParam(':timestamp', $aNow);
 			$aStmt->bindParam(':uuid', $aUser);
 			$aStmt->bindParam(':data', $aData);

@@ -102,7 +102,7 @@ FTG.Experiment.prototype.greetings = function() {
         '<h1>Instruções</h1>' +
         '<p>User: ' + this.mUid + '</p>' +
         '<p>Bem-vindo! Por favor espere até que o pesquisador permita que você comece.<br/>Quando for lhe dito, clique em "Iniciar".<br /><br />Obrigado por fazer parte desta pesquisa!</p>' +
-        '<button id="start">Iniciar</button> <button id="heart">HR watch</button>' +
+        '<button id="start">Iniciar</button>' +
         '</div>'
     );
 
@@ -142,12 +142,16 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     if (aSelf.mCurrentPhrase < phrases.length) {
 
         $('#info').html('<h4>' + phrases[aSelf.mCurrentPhrase] + '</h4>' +
-            '<button id="next">Proximo</button>'
+            '<button id="next">Proximo</button> <button id="record">Gravar</button>'
         ).show();
 
         $('#next').click(function() {
             aSelf.mCurrentPhrase += 1
             aSelf.startExperiment(phrases)
+        });
+
+        $('#record').click(function() {
+            aSelf.saveTimeStamp(true);
         });
 
     } else {
@@ -174,12 +178,16 @@ FTG.Experiment.prototype.start = function() {
         this
     );
 
-    /*
-        FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
-            text = res.split(/\r?\n/)
-        })
-        this.startExperiment(text)*/
 };
+
+FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
+    var text;
+
+    FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
+        text = res.split(/\r?\n/)
+    })
+    this.startExperiment(text)
+}
 
 FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theData) {
     var aSelf = this;
@@ -192,7 +200,6 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
         data: {
             method: 'answer',
             user: this.mUid,
-            game: theGameId,
             data: JSON.stringify({ t: Date.now(), d: theData })
         },
         dataType: 'json'
@@ -200,7 +207,7 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
     }).done(function(theData) {
         if (theData.success) {
             console.log('[Experiment] Questionnaire data has been saved!');
-
+            aSelf.proceedAfterQuestionnaireAnswered();
         } else {
             console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
         }
@@ -268,6 +275,36 @@ FTG.Experiment.prototype.getGameById = function(theId) {
     }
 
     return aGame;
+};
+
+FTG.Experiment.prototype.saveTimeStamp = function(recording) {
+    var aSelf = this;
+
+    console.log('[Experiment] Saving timestamp for user' + this.mUserId + ' and phrase ' + this.mCurrentPhrase + '.');
+
+    $.ajax({
+        url: '../backend/savetimestamp.php',
+        method: 'POST',
+        data: {
+            method: 'saveTimeStamp',
+            user: this.mUid,
+            phraseid: this.mCurrentPhrase,
+            timestampIni: '',
+            timestampEnd: '',
+        },
+        dataType: 'json'
+
+    }).done(function(theData) {
+        if (theData.success) {
+            console.log('[Experiment] Questionnaire data has been saved!');
+            aSelf.proceedAfterQuestionnaireAnswered();
+        } else {
+            console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
+        }
+    }).fail(function(theXHR, theText) {
+        // TODO: show some user friendly messages?
+        console.error('Something wrong: ' + theXHR.responseText, theXHR, theText);
+    });
 };
 
 // Start the party!
