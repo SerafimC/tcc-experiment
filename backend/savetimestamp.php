@@ -28,11 +28,11 @@ try {
 
 			$aTable = 'audio_timestamp';
 
-			$aStmt = $aDb->prepare("INSERT INTO ".$aTable." (user_id, phrase_id, init_timestamp , end_timestamp) VALUES (:uuid, :pid, :initimestamp, :endinitimestamp)");
+			$aStmt = $aDb->prepare("INSERT OR REPLACE INTO ".$aTable." (user_id, phrase_id, init_timestamp , end_timestamp) VALUES (:uuid, :pid, :initimestamp, :endinitimestamp)");
 
 			$aNow = time();
-			$aStmt->bindParam(':initimestamp', $aNow);
-			$aStmt->bindParam(':endinitimestamp', $aNow);
+			$aStmt->bindParam(':initimestamp', $atimestampini);
+			$aStmt->bindParam(':endinitimestamp', $atimestampend);
 			$aStmt->bindParam(':uuid', $aUser);
 			$aStmt->bindParam(':pid', $aPhraseid);
 

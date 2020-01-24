@@ -11,6 +11,7 @@ FTG.Experiment = function() {
     this.mUid;
     this.mCurrentPhrase;
     this.mRestTime = 2.3; // in minutes
+    this.mStarTime; // Seconds
     this.mDebug;
     this.mFinished;
     this.mData;
@@ -138,6 +139,9 @@ FTG.Experiment.prototype.generateGameURL = function(theGameInfo) {
 
 FTG.Experiment.prototype.startExperiment = function(phrases) {
     var aSelf = this;
+    var iniTime = 0,
+        endTime = 0
+    var recordText = 'Gravar';
 
     if (aSelf.mCurrentPhrase < phrases.length) {
 
@@ -151,7 +155,17 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
         });
 
         $('#record').click(function() {
-            aSelf.saveTimeStamp(true);
+            $('#text').html(recordText)
+            if (iniTime == 0) {
+                iniTime = (new Date).getTime() / 1000
+                document.getElementById("record").textContent = 'Parar'
+            } else {
+                endTime = (new Date).getTime() / 1000
+                aSelf.saveTimeStamp(iniTime - aSelf.mStarTime, endTime - aSelf.mStarTime);
+                iniTime = endTime = 0;
+                document.getElementById("record").textContent = 'Gravar'
+            }
+
         });
 
     } else {
@@ -160,8 +174,6 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
 }
 
 FTG.Experiment.prototype.start = function() {
-    var text
-
     $('#info').html(
         '<div class="questionnaire">' +
         '<h2>Questions</h2>' +
@@ -186,6 +198,7 @@ FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
     FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
         text = res.split(/\r?\n/)
     })
+    this.mStarTime = (new Date).getTime() / 1000
     this.startExperiment(text)
 }
 
@@ -277,7 +290,7 @@ FTG.Experiment.prototype.getGameById = function(theId) {
     return aGame;
 };
 
-FTG.Experiment.prototype.saveTimeStamp = function(recording) {
+FTG.Experiment.prototype.saveTimeStamp = function(timestampIni, timestampEnd) {
     var aSelf = this;
 
     console.log('[Experiment] Saving timestamp for user' + this.mUserId + ' and phrase ' + this.mCurrentPhrase + '.');
@@ -288,15 +301,15 @@ FTG.Experiment.prototype.saveTimeStamp = function(recording) {
         data: {
             method: 'saveTimeStamp',
             user: this.mUid,
-            phraseid: this.mCurrentPhrase,
-            timestampIni: '',
-            timestampEnd: '',
+            phraseid: this.mCurrentPhrase + 1,
+            timestampIni: timestampIni,
+            timestampEnd: timestampEnd,
         },
         dataType: 'json'
 
     }).done(function(theData) {
         if (theData.success) {
-            console.log('[Experiment] Questionnaire data has been saved!');
+            console.log('[Experiment] Timestamp has been saved!');
             aSelf.proceedAfterQuestionnaireAnswered();
         } else {
             console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);

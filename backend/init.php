@@ -9,12 +9,10 @@ require_once(dirname(__FILE__) . '/config.php');
 $aDb = new PDO('sqlite:' . DB_FILE);
 $aDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$aDb->query('CREATE TABLE audio_timestamp (user_id INTEGER, phrase_id INTEGER, init_timestamp DATETIME, end_timestamp DATETIME)');
-$aDb->query('CREATE TABLE user_metadado (user_id INTEGER, data TEXT)');
+$aDb->query('CREATE TABLE audio_timestamp (user_id INTEGER, phrase_id INTEGER, init_timestamp DATETIME, end_timestamp DATETIME, PRIMARY KEY(user_id, phrase_id))');
 $aDb->query('CREATE TABLE questionnaires (user_id INTEGER, timestamp INTEGER, data TEXT)');
 $aDb->query('CREATE TABLE phrases (id PRIMARY KEY, phrase VARCHAR(100))');
 $aDb->query('CREATE INDEX idx_audiotimestamp_user_id ON audio_timestamp (user_id)');
-$aDb->query('CREATE INDEX idx_user_metadado_user_id ON user_metadado (user_id)');
 
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (1, \'Esse tema foi falado no congresso.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (2, \'Leila tem um lindo casaco.\')');
