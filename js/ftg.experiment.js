@@ -11,6 +11,7 @@ FTG.Experiment = function() {
     this.mUid;
     this.mCurrentPhrase;
     this.mRestTime = 2.3; // in minutes
+    this.delayTimeAudacity = 5; // Seconds
     this.mStarTime; // Seconds
     this.mDebug;
     this.mFinished;
@@ -199,7 +200,7 @@ FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
     FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
         text = res.split(/\r?\n/)
     })
-    this.mStarTime = (new Date).getTime() / 1000 + 5
+    this.mStarTime = (new Date).getTime() / 1000 + this.delayTimeAudacity
     $.ajax({
         url: '../backend/startRecording.php',
         method: 'POST'
