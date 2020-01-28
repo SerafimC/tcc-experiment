@@ -194,18 +194,29 @@ FTG.Experiment.prototype.start = function() {
 
 FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
     var text;
+    var aSelf = this
 
     FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
         text = res.split(/\r?\n/)
     })
-    this.mStarTime = (new Date).getTime() / 1000
-    this.startExperiment(text)
+    this.mStarTime = (new Date).getTime() / 1000 + 5
+    $.ajax({
+        url: '../backend/startRecording.php',
+        method: 'POST'
+    }).done(function(theData) {
+        console.error('Audacity should be running')
+        aSelf.startExperiment(text)
+    }).fail(function(theXHR, theText) {
+        // TODO: show some user friendly messages?
+        console.error('Something wrong: ' + theXHR.responseText, theXHR, theText);
+    });
+
 }
 
 FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theData) {
     var aSelf = this;
 
-    console.log('[Experiment] Sending questionnaire data (game: ' + theGameId + ')', JSON.stringify(theData));
+    // console.log('[Experiment] Sending questionnaire data (game: ' + theGameId + ')', JSON.stringify(theData));
 
     $.ajax({
         url: '../backend/',
@@ -228,16 +239,6 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
         // TODO: show some user friendly messages?
         console.error('Something wrong: ' + theXHR.responseText, theXHR, theText);
     });
-};
-
-FTG.Experiment.prototype.getGameQuestionsIntro = function(theGameInfo) {
-    var aIntro = 'Regarding the game you just played, please answer the questions below.';
-
-    if (('questionsIntro' in theGameInfo) && theGameInfo.questionsIntro.length > 0) {
-        aIntro = theGameInfo.questionsIntro;
-    }
-
-    return aIntro;
 };
 
 FTG.Experiment.prototype.finish = function() {
@@ -269,27 +270,6 @@ FTG.Experiment.prototype.finish = function() {
     this.mFinished = true;
 };
 
-FTG.Experiment.prototype.sendSubjectHome = function() {
-    console.log('[Experiment] The party is over! Last one to leave turn off the lights.');
-    $('#info').html('<div class="rest-container"><div><h1>The end!</h1><p>You are good to go. Thank you for helping us help you help us all! :)</p></div></div>');
-
-    this.mData.logMilestone(this.mUid, -1, 'experiment_end');
-    this.playBipSound();
-};
-
-FTG.Experiment.prototype.getGameById = function(theId) {
-    var aGame = null;
-
-    for (var i = 0, aSize = this.mGames.length; i < aSize; i++) {
-        if (this.mGames[i].id == theId) {
-            aGame = this.mGames[i];
-            break;
-        }
-    }
-
-    return aGame;
-};
-
 FTG.Experiment.prototype.saveTimeStamp = function(timestampIni, timestampEnd) {
     var aSelf = this;
 
@@ -310,7 +290,6 @@ FTG.Experiment.prototype.saveTimeStamp = function(timestampIni, timestampEnd) {
     }).done(function(theData) {
         if (theData.success) {
             console.log('[Experiment] Timestamp has been saved!');
-            aSelf.proceedAfterQuestionnaireAnswered();
         } else {
             console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
         }
