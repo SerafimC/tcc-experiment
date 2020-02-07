@@ -147,11 +147,11 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
         '<p style="font-size: 15px; margin-left:25px; ">Se sim, clique em <b>CONTINUAR</b>.</p>' +
         '<p style="font-size: 15px; margin-left:25px;">Se não, clique em <b>REGRAVAR</b> e, quando pronto, em <b>INICIAR</b> novamente.</p>'
 
-    var startButton = '<button id="record" style="background-color:#FF0000; margin-left:10px;">Iniciar</button>'
-    var stopButton = '<button id="stop" style="background-color:#FFCCCB; margin-left:10px;" disable>Parar</button>'
+    var startButton = '<button id="record" style="background-color:#FF0000; margin-left:50px;">Iniciar</button>'
+    var stopButton = '<button id="stop" style="background-color:#FFCCCB; margin-left:50px;" disable>Parar</button>'
 
-    var repeatButton = '<button id="repeat" style="background-color:#8ABAAE; margin-left:10px;" disable>Regravar</button>'
-    var nextButton = '<button id="next" style="background-color:#9CCC9C; margin-left:10px;" disable>Continuar</button>'
+    var repeatButton = '<button id="repeat" style="background-color:#8ABAAE; margin-left:50px;" disable>Regravar</button>'
+    var nextButton = '<button id="next" style="background-color:#9CCC9C; margin-left:50px;" disable>Continuar</button>'
 
     if (aSelf.mCurrentPhrase < phrases.length) {
         var phraseToberead = '<p style="margin-left:50px;">' + phrases[aSelf.mCurrentPhrase] + '</p>'
@@ -183,7 +183,9 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
             document.getElementById("stop").disabled = true
             document.getElementById("stop").style.background = '#FFCCCB'
             document.getElementById("next").style.background = '#149414'
+            document.getElementById("next").disabled = false
             document.getElementById("repeat").style.background = '#2E856E'
+            document.getElementById("repeat").disabled = false
         });
 
     } else {
