@@ -142,13 +142,25 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     var aSelf = this;
     var iniTime = 0,
         endTime = 0
-    var recordText = 'Gravar';
+    var topText = '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo: </p> '
+    var bottomText = '<p style="font-size: 20px; margin-left:10px;"> Acredita que a gravação ficou como o esperado? </p>' +
+        '<p style="font-size: 15px; margin-left:25px; ">Se sim, clique em <b>CONTINUAR</b>.</p>' +
+        '<p style="font-size: 15px; margin-left:25px;">Se não, clique em <b>REGRAVAR</b> e, quando pronto, em <b>INICIAR</b> novamente.</p>'
+
+    var startButton = '<button id="record" style="background-color:#FF0000; margin-left:10px;">Iniciar</button>'
+    var stopButton = '<button id="stop" style="background-color:#FFCCCB; margin-left:10px;" disable>Parar</button>'
+
+    var repeatButton = '<button id="repeat" style="background-color:#8ABAAE; margin-left:10px;" disable>Regravar</button>'
+    var nextButton = '<button id="next" style="background-color:#9CCC9C; margin-left:10px;" disable>Continuar</button>'
 
     if (aSelf.mCurrentPhrase < phrases.length) {
+        var phraseToberead = '<p style="margin-left:50px;">' + phrases[aSelf.mCurrentPhrase] + '</p>'
 
-        $('#info').html('<h4>' + phrases[aSelf.mCurrentPhrase] + '</h4>' +
-            '<button id="next">Proximo</button> <button id="record">Gravar</button>'
-        ).show();
+        $('#info').html('<br>' + topText + '<br><h4>' + phraseToberead + '</h4><br>' + startButton + stopButton + '<br><br>' + bottomText + repeatButton + nextButton).show();
+
+        document.getElementById("stop").disabled = true;
+        document.getElementById("repeat").disabled = true;
+        document.getElementById("next").disabled = true;
 
         $('#next').click(function() {
             aSelf.mCurrentPhrase += 1
@@ -156,17 +168,22 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
         });
 
         $('#record').click(function() {
-            $('#text').html(recordText)
-            if (iniTime == 0) {
-                iniTime = (new Date).getTime() / 1000
-                document.getElementById("record").textContent = 'Parar'
-            } else {
-                endTime = (new Date).getTime() / 1000
-                aSelf.saveTimeStamp(iniTime - aSelf.mStarTime, endTime - aSelf.mStarTime);
-                iniTime = endTime = 0;
-                document.getElementById("record").textContent = 'Gravar'
-            }
+            iniTime = (new Date).getTime() / 1000
+            document.getElementById("record").disabled = true
+            document.getElementById("record").style.background = '#FFCCCB'
+            document.getElementById("stop").style.background = '#FF0000'
+            document.getElementById("stop").disabled = false
 
+        });
+
+        $('#stop').click(function() {
+            endTime = (new Date).getTime() / 1000
+            aSelf.saveTimeStamp(iniTime - aSelf.mStarTime, endTime - aSelf.mStarTime);
+            iniTime = endTime = 0;
+            document.getElementById("stop").disabled = true
+            document.getElementById("stop").style.background = '#FFCCCB'
+            document.getElementById("next").style.background = '#149414'
+            document.getElementById("repeat").style.background = '#2E856E'
         });
 
     } else {
@@ -200,18 +217,8 @@ FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
     FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
         text = res.split(/\r?\n/)
     })
-    this.mStarTime = (new Date).getTime() / 1000 + this.delayTimeAudacity
-    $.ajax({
-        url: '../backend/startRecording.php',
-        method: 'POST'
-    }).done(function(theData) {
-        console.error('Audacity should be running')
-        aSelf.startExperiment(text)
-    }).fail(function(theXHR, theText) {
-        // TODO: show some user friendly messages?
-        console.error('Something wrong: ' + theXHR.responseText, theXHR, theText);
-    });
-
+    this.mStarTime = (new Date).getTime() / 1000
+    aSelf.startExperiment(text)
 }
 
 FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theData) {
