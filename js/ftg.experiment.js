@@ -142,21 +142,23 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     var aSelf = this;
     var iniTime = 0,
         endTime = 0
-    var topText = '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo: </p> '
-    var bottomText = '<p style="font-size: 20px; margin-left:10px;"> Acredita que a gravação ficou como o esperado? </p>' +
-        '<p style="font-size: 15px; margin-left:25px; ">Se sim, clique em <b>CONTINUAR</b>.</p>' +
-        '<p style="font-size: 15px; margin-left:25px;">Se não, clique em <b>REGRAVAR</b> e, quando pronto, em <b>INICIAR</b> novamente.</p>'
+    var topText = '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo </p> ' +
+    '<p style="font-size: 25px; margin-left:10px;"> Quando terminar a leitura em voz alta, clique em <b>PARAR</b> para encerrar a gravação. </p> '
+    var bottomText = '<p style="font-size: 25px; margin-left:10px;"> Acredita que a gravação ficou como o esperado? </p>' +
+        '<p style="font-size: 20px; margin-left:25px; ">Se sim, clique em <b>CONTINUAR</b>.</p>' +
+        '<p style="font-size: 20px; margin-left:25px;">Se não, clique em <b>REGRAVAR</b> e, quando pronto, em <b>INICIAR</b> novamente.</p>'
 
-    var startButton = '<button id="record" style="background-color:#FF0000; margin-left:50px;">Iniciar</button>'
+    var startButton = '<button id="record" style="background-color:#FF0000;">Iniciar</button>'
     var stopButton = '<button id="stop" style="background-color:#FFCCCB; margin-left:50px;" disable>Parar</button>'
 
     var repeatButton = '<button id="repeat" style="background-color:#8ABAAE; margin-left:50px;" disable>Regravar</button>'
     var nextButton = '<button id="next" style="background-color:#9CCC9C; margin-left:50px;" disable>Continuar</button>'
 
     if (aSelf.mCurrentPhrase < phrases.length) {
-        var phraseToberead = '<p style="margin-left:50px;">' + phrases[aSelf.mCurrentPhrase] + '</p>'
+        var phraseToberead = '<p>' + phrases[aSelf.mCurrentPhrase] + '</p>'
 
-        $('#info').html('<br>' + topText + '<br><h4>' + phraseToberead + '</h4><br>' + startButton + stopButton + '<br><br>' + bottomText + repeatButton + nextButton).show();
+        $('#info').html(topText + '<br><div style="background-color:#F5F5F5; width:600px;margin-left:50px;padding:20px;padding-left:50px;box-shadow: 5px 10px #888888;"><h4>' + phraseToberead + '</h4><br>' + startButton + stopButton + "</div>" 
+        + '<br><br>' + bottomText + repeatButton + nextButton).show();
 
         document.getElementById("stop").disabled = true;
         document.getElementById("repeat").disabled = true;
@@ -188,6 +190,18 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
             document.getElementById("repeat").disabled = false
         });
 
+        $('#repeat').click(function() {
+            endTime = (new Date).getTime() / 1000
+            aSelf.saveTimeStamp(iniTime - aSelf.mStarTime, endTime - aSelf.mStarTime);
+            iniTime = endTime = 0;
+            document.getElementById("next").style.background = '#9CCC9C'
+            document.getElementById("next").disabled = true
+            document.getElementById("repeat").style.background = '#8ABAAE'
+            document.getElementById("repeat").disabled = true
+            document.getElementById("record").disabled = false
+            document.getElementById("record").style.background = '#FF0000'
+        });
+
     } else {
         this.finish()
     }
@@ -196,8 +210,8 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
 FTG.Experiment.prototype.start = function() {
     $('#info').html(
         '<div class="questionnaire">' +
-        '<h2>Questions</h2>' +
-        '<p>Please tell us a bit about you.</p>' +
+        '<h2>Questionário</h2>' +
+        '<p>Por favor, nos conte mais sobre você.</p>' +
         '<div id="questions" class="questions"></div>' +
         '</div>'
     );
@@ -212,13 +226,43 @@ FTG.Experiment.prototype.start = function() {
 
 };
 
-FTG.Experiment.prototype.proceedAfterQuestionnaireAnswered = function() {
+FTG.Experiment.prototype.instructions1 = function() {
+    var aSelf = this;
+
+    $('#info').html(
+        '<br>' +
+        '<p style="margin:25px;"> Você está prestes a iniciar um experimento para capturar diferentes amostras da sua voz. </p>' +
+        '<p style="margin:25px;"> Você deverá ler um total de 200 frases diferentes. Durante a leitura, mantenha a calma e tente ler da forma mais correta e natural possível. </p>' +
+        '<p style="margin:25px;"> Na tela seguinte serão apresentadas instruções de como utilizar o programa de gravação. Antes de iniciar, tire suas dúvidas com o instrutor </p>' +
+        '<div style="text-align: center;"><button id="continue">Entendi</button></div>'
+    ).show();
+
+    $('#continue').click(function() {
+        aSelf.instructions2();
+    });
+}
+
+FTG.Experiment.prototype.instructions2 = function() {
+    var aSelf = this;
+    
+    $('#info').html(
+        '<br><div style="text-align: center;"><img src="../img/instrucoes.png" width="90%"></div>' +
+        '<div style="text-align: center;"><button id="continue" style="width:500px;">Estou pronto para começar!</button></div>'
+    ).show();
+
+    $('#continue').click(function() {
+        aSelf.startRecording();
+    });
+}
+
+FTG.Experiment.prototype.startRecording = function() {
     var text;
     var aSelf = this
 
     FTG.Utils.readTextFile('../backend/phrases.txt', function(res) {
         text = res.split(/\r?\n/)
     })
+    aSelf.playBipSound();
     this.mStarTime = (new Date).getTime() / 1000
     aSelf.startExperiment(text)
 }
@@ -241,7 +285,7 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
     }).done(function(theData) {
         if (theData.success) {
             console.log('[Experiment] Questionnaire data has been saved!');
-            aSelf.proceedAfterQuestionnaireAnswered();
+            aSelf.instructions1();
         } else {
             console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
         }
