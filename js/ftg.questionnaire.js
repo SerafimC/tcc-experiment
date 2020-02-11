@@ -4,10 +4,9 @@
 
 var FTG = FTG || {};
 
-FTG.Questionnaire = function(theContainerId, theUserId, theGameId, theQuestions, theDoneCallback, theCallbackContext) {
+FTG.Questionnaire = function(theContainerId, theUserId, theQuestions, theDoneCallback, theCallbackContext) {
     this.mContainerId = theContainerId;
     this.mUserId = theUserId;
-    this.mGameId = theGameId;
     this.mDoneCallback = theDoneCallback;
     this.mCallbackContext = theCallbackContext || this;
     this.mQuestions = theQuestions;
@@ -88,6 +87,6 @@ FTG.Questionnaire.prototype.finish = function() {
     }
 
     if (aData.length == this.mQuestions.length) {
-        this.mDoneCallback.call(this.mCallbackContext, this.mGameId, aData);
+        this.mDoneCallback.call(this.mCallbackContext, aData);
     }
 };

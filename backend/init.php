@@ -64,7 +64,7 @@ $aDb->query('INSERT INTO phrases (id, phrase) VALUES (47, \'Comer quindim é sem
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (48, \'Hoje irei precisar de você.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (49, \'Sem ele o tempo flui num ritmo suave.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (50, \'A sujeira lançada no rio contamina os peixes.\')');
-$aDb->query('INSERT INTO phrases (id, phrase) VALUES (51, \'Ojogo será transmitido à tarde.\')');
+$aDb->query('INSERT INTO phrases (id, phrase) VALUES (51, \'O jogo será transmitido à tarde.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (52, \'É possível que ele já esteja fora de perigo.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (53, \'A explicação pode ser encontrada na tese.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (54, \'Meu vôo tinha sido marcado para as cinco horas\')');

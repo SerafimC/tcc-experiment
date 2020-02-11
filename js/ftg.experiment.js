@@ -43,13 +43,8 @@ FTG.Experiment.prototype.init = function() {
     this.mData = new FTG.Collector(this.mDebug);
     this.mRestTime *= 60 * 1000;
 
-    console.log('[Experiment] Init with user uid:' + this.mUid + ', rest: ' + this.mRestTime + 'ms');
+    this.getNewUserID();
 
-    if (this.mUid == null) {
-        alert('User id not informed! Append ?user=DDD to the URL.');
-    } else {
-        this.greetings();
-    }
 };
 
 FTG.Experiment.prototype.preventAbruptSessionEnd = function() {
@@ -109,33 +104,32 @@ FTG.Experiment.prototype.greetings = function() {
     );
 
     $('#start').click(function() {
-        aSelf.start();
+        aSelf.instructions1();
     });
 
-    $('#heart').click(function() {
-        aSelf.mData.logMilestone(aSelf.mUid, -1, 'experiment_hr_start');
-        aSelf.playBipSound();
-        $(this).hide();
-
-        // try to protect the experiment against unintended user actions
-        // that will terminate the experiment, e.g. page refresh
-        aSelf.preventAbruptSessionEnd();
-    });
-
-    // Play the bip sound to indicate everything is set.
-    this.playBipSound();
 };
 
-FTG.Experiment.prototype.generateGameURL = function(theGameInfo) {
-    var aGameParams = '';
+FTG.Experiment.prototype.getNewUserID = function() {
+    var aSelf = this;
 
-    if (theGameInfo.params) {
-        for (var aParam in theGameInfo.params) {
-            aGameParams += '&' + aParam + '=' + encodeURIComponent(theGameInfo.params[aParam]);
+    $.ajax({
+        url: '../backend/getnewuserid.php',
+        method: 'POST',
+        dataType: 'json'
+
+    }).done(function(theData) {
+        if (theData.success) {
+            aSelf.mUid = theData.id;
+            console.log('[Experiment] Init with user uid:' + aSelf.mUid);
+            aSelf.start();
+        } else {
+            console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
+
         }
-    }
-
-    return theGameInfo.url + '?user=' + this.mUid + '&game=' + theGameInfo.id + '&rand=' + Math.random() + '&debug=' + this.mDebug + aGameParams;
+    }).fail(function(theXHR, theText) {
+        // TODO: show some user friendly messages?
+        console.error('Something wrong: ' + theXHR.responseText, theXHR, theText);
+    });
 };
 
 FTG.Experiment.prototype.startExperiment = function(phrases) {
@@ -143,7 +137,7 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     var iniTime = 0,
         endTime = 0
     var topText = '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo </p> ' +
-    '<p style="font-size: 25px; margin-left:10px;"> Quando terminar a leitura em voz alta, clique em <b>PARAR</b> para encerrar a gravação. </p> '
+        '<p style="font-size: 25px; margin-left:10px;"> Quando terminar a leitura em voz alta, clique em <b>PARAR</b> para encerrar a gravação. </p> '
     var bottomText = '<p style="font-size: 25px; margin-left:10px;"> Acredita que a gravação ficou como o esperado? </p>' +
         '<p style="font-size: 20px; margin-left:25px; ">Se sim, clique em <b>CONTINUAR</b>.</p>' +
         '<p style="font-size: 20px; margin-left:25px;">Se não, clique em <b>REGRAVAR</b> e, quando pronto, em <b>INICIAR</b> novamente.</p>'
@@ -157,8 +151,8 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     if (aSelf.mCurrentPhrase < phrases.length) {
         var phraseToberead = '<p>' + phrases[aSelf.mCurrentPhrase] + '</p>'
 
-        $('#info').html(topText + '<br><div style="background-color:#F5F5F5; width:600px;margin-left:50px;padding:20px;padding-left:50px;box-shadow: 5px 10px #888888;"><h4>' + phraseToberead + '</h4><br>' + startButton + stopButton + "</div>" 
-        + '<br><br>' + bottomText + repeatButton + nextButton).show();
+        $('#info').html(topText + '<br><div style="background-color:#F5F5F5; width:600px;margin-left:50px;padding:20px;padding-left:50px;box-shadow: 5px 10px #888888;"><h4>' + phraseToberead + '</h4><br>' + startButton + stopButton + "</div>" +
+            '<br><br>' + bottomText + repeatButton + nextButton).show();
 
         document.getElementById("stop").disabled = true;
         document.getElementById("repeat").disabled = true;
@@ -218,7 +212,7 @@ FTG.Experiment.prototype.start = function() {
 
     aQuestions = new FTG.Questionnaire(
         'questions',
-        this.mUid, -1, // no game
+        this.mUid,
         FTG.Questions.User,
         this.concludeCurrentQuestionnaire,
         this
@@ -244,7 +238,7 @@ FTG.Experiment.prototype.instructions1 = function() {
 
 FTG.Experiment.prototype.instructions2 = function() {
     var aSelf = this;
-    
+
     $('#info').html(
         '<br><div style="text-align: center;"><img src="../img/instrucoes.png" width="90%"></div>' +
         '<div style="text-align: center;"><button id="continue" style="width:500px;">Estou pronto para começar!</button></div>'
@@ -267,10 +261,8 @@ FTG.Experiment.prototype.startRecording = function() {
     aSelf.startExperiment(text)
 }
 
-FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theData) {
+FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theData) {
     var aSelf = this;
-
-    // console.log('[Experiment] Sending questionnaire data (game: ' + theGameId + ')', JSON.stringify(theData));
 
     $.ajax({
         url: '../backend/',
@@ -285,7 +277,7 @@ FTG.Experiment.prototype.concludeCurrentQuestionnaire = function(theGameId, theD
     }).done(function(theData) {
         if (theData.success) {
             console.log('[Experiment] Questionnaire data has been saved!');
-            aSelf.instructions1();
+            aSelf.greetings();
         } else {
             console.error('[Experiment] Backend didn\'t like the answers: ' + theData.message);
         }
@@ -303,22 +295,9 @@ FTG.Experiment.prototype.finish = function() {
 
     console.log('[Experiment] Finishing up. Last chance to ask anything.');
     this.playTanSound();
-    this.mData.logMilestone(this.mUid, -1, 'experiment_final_questions_start');
 
     $('#info').html(
-        '<div class="questionnaire">' +
-        '<h2>Questions</h2>' +
-        '<p>Please tell us a bit about you.</p>' +
-        '<div id="questions" class="questions"></div>' +
-        '</div>'
-    );
-
-    aQuestions = new FTG.Questionnaire(
-        'questions',
-        this.mUid, -1, // no game
-        FTG.Questions.User,
-        this.concludeCurrentQuestionnaire,
-        this
+        '<h1> The End </h1>'
     );
 
     this.mFinished = true;
