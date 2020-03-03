@@ -45,7 +45,13 @@ FTG.Questionnaire.prototype.render = function() {
                     '<label for="' + aId + '">' + (aQuestion.hide ? '' : aQuestion.options[j].value + ' ') + aQuestion.options[j].label + '</label>';
             }
         } else if (aQuestion.input) {
-            aContent += '<input type="text" name="t' + i + '" value="" />';
+            aContent += '<input ';
+            aContent += 'type="' + (aQuestion.type ? aQuestion.type : 'text') + '" ';
+            aContent += (aQuestion.step ? 'step="' + aQuestion.step + '" ' : '');
+            aContent += 'placeholder="' + (aQuestion.placeholder ? aQuestion.placeholder : '') + '" ';
+            aContent += (aQuestion.pattern ? 'pattern="' + aQuestion.pattern + '" ' : '');
+            aContent += (aQuestion.title ? 'title="' + aQuestion.title + '" ' : '');
+            aContent += 'name="t' + i + '" value="" />';
         }
 
         aContent += '</div>';
