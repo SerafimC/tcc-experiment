@@ -136,7 +136,8 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     var aSelf = this;
     var iniTime = 0,
         endTime = 0
-    var topText = '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo </p> ' +
+    var topText = '<p> Frase ' + (aSelf.mCurrentPhrase + 1) + ' de 200 </p> ' +
+        '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo </p> ' +
         '<p style="font-size: 25px; margin-left:10px;"> Quando terminar a leitura em voz alta, clique em <b>PARAR</b> para encerrar a gravação. </p> '
     var bottomText = '<p style="font-size: 25px; margin-left:10px;"> Acredita que a gravação ficou como o esperado? </p>' +
         '<p style="font-size: 20px; margin-left:25px; ">Se sim, clique em <b>CONTINUAR</b>.</p>' +
