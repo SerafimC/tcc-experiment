@@ -111,7 +111,7 @@ $aDb->query('INSERT INTO phrases (id, phrase) VALUES (94, \'O barraco pode desab
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (95, \'O candidato falou como se já estivesse eleito.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (96, \'A idéia é falha, mas interessante.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (97, \'O dia está bom pra passear de navio.\')');
-$aDb->query('INSERT INTO phrases (id, phrase) VALUES (98, \'Minha correpondência me espera em casa.\')');
+$aDb->query('INSERT INTO phrases (id, phrase) VALUES (98, \'Minha correspondência me espera em casa.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (99, \'A saída pra crise dele é o diálogo.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (100, \'Finalmente São Pedro chamou o mau tempo.\')');
 $aDb->query('INSERT INTO phrases (id, phrase) VALUES (101, \'Um casal de gatos come no telhado.\')');

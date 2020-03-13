@@ -136,7 +136,7 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
     var aSelf = this;
     var iniTime = 0,
         endTime = 0
-    var topText = '<p> Frase ' + (aSelf.mCurrentPhrase + 1) + ' de 200 </p> ' +
+    var topText = '<h12> Frase ' + (aSelf.mCurrentPhrase + 1) + ' de 200 </h12> ' +
         '<p style="font-size: 25px; margin-left:10px;"> Clique em <b>INICIAR</b> para gravar e logo após leia em voz alta a frase abaixo </p> ' +
         '<p style="font-size: 25px; margin-left:10px;"> Quando terminar a leitura em voz alta, clique em <b>PARAR</b> para encerrar a gravação. </p> '
     var bottomText = '<p style="font-size: 25px; margin-left:10px;"> Acredita que a gravação ficou como o esperado? </p>' +
@@ -153,7 +153,7 @@ FTG.Experiment.prototype.startExperiment = function(phrases) {
         var phraseToberead = '<p>' + phrases[aSelf.mCurrentPhrase] + '</p>'
 
         $('#info').html(topText + '<br><div style="background-color:#F5F5F5; width:600px;margin-left:50px;padding:20px;padding-left:50px;box-shadow: 5px 10px #888888;"><h4>' + phraseToberead + '</h4><br>' + startButton + stopButton + "</div>" +
-            '<br><br>' + bottomText + repeatButton + nextButton).show();
+            '<br>' + bottomText + repeatButton + nextButton).show();
 
         document.getElementById("stop").disabled = true;
         document.getElementById("repeat").disabled = true;
